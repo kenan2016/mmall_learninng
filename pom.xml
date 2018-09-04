@@ -211,7 +211,11 @@
 
 
     <!-- mybatis pager(mybatis三剑客之一)
-     下面3个是mybatis 分页插件的jar包-->
+     下面3个是mybatis 分页插件的jar包
+     原理：利用aop 截获我们执行的查询的查询列表的SQL，
+     自动给我们查出count,
+     并给我们返回这些分页参数（是否有上一页，下一页，pageSize等等）
+     -->
     <dependency>
       <groupId>com.github.pagehelper</groupId>
       <artifactId>pagehelper</artifactId>

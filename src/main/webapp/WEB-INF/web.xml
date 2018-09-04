@@ -1,119 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Licensed to the Apache Software Foundation (ASF) under one or more
-  contributor license agreements.  See the NOTICE file distributed with
-  this work for additional information regarding copyright ownership.
-  The ASF licenses this file to You under the Apache License, Version 2.0
-  (the "License"); you may not use this file except in compliance with
-  the License.  You may obtain a copy of the License at
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         id="WebApp_ID" version="2.5">
 
-      http://www.apache.org/licenses/LICENSE-2.0
+    <display-name>Archetype Created Web Application</display-name>
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
--->
+    <!--spring 一个过滤器的配置：转字符码用，这样我们就不用去写转utf8 的 encoding-->
+    <filter>
+        <filter-name>characterEncodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>characterEncodingFilter</filter-name>
+        <!--/* 表示拦截所有的请求-->
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
-<!--
-  - This is the Cocoon web-app configurations file
-  -
-  - $Id$
-  -->
-<web-app version="2.4"
-         xmlns="http://java.sun.com/xml/ns/j2ee"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+   <!--这是一个web容器启动和关闭 的监听器-->
+    <listener>
+        <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
+    </listener>
 
-  <!-- Servlet Filters ================================================ -->
-
-  <!--
-    - Declare a filter for multipart MIME handling
+    <!--将web容器和spring容器进行整合的一个监听器
+    ContextLoaderListener 会去加载 applicationContext 配置文件。
+    在 一开始学习spring 的时候都会去手写一下  ContextLoaderListener，然后加载配置文件
     -->
-  <filter>
-    <description>Multipart MIME handling filter for Cocoon</description>
-    <display-name>Cocoon multipart filter</display-name>
-    <filter-name>CocoonMultipartFilter</filter-name>
-    <filter-class>org.apache.cocoon.servlet.multipart.MultipartFilter</filter-class>
-  </filter>
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+            <!--注意看这里，这里指向了spring 的配置文件applicationContext-->
+            classpath:applicationContext.xml
+        </param-value>
+    </context-param>
 
-  <!--
-    - Declare a filter for debugging incoming request
-    -->
-  <filter>
-    <description>Log debug information about each request</description>
-    <display-name>Cocoon debug filter</display-name>
-    <filter-name>CocoonDebugFilter</filter-name>
-    <filter-class>org.apache.cocoon.servlet.DebugFilter</filter-class>
-  </filter>
+    <!--这里是springMVC 的一个配置-->
+    <servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!--1（所有大于0的数）：表示在容器启动时就会初始化这个servlet（即DispatcherServlet调用他的init方法
+        ）
+        当小于0或者不配置时，表示，这个servlet只有在被使用时，才会被加载-->
+        <load-on-startup>1</load-on-startup>
+    </servlet>
 
-  <!-- Filter mappings ================================================ -->
-
-  <!--
-    - Use the Cocoon multipart filter together with the Cocoon demo webapp
-    -->
-  <filter-mapping>
-    <filter-name>CocoonMultipartFilter</filter-name>
-    <servlet-name>Cocoon</servlet-name>
-  </filter-mapping>
-  <filter-mapping>
-    <filter-name>CocoonMultipartFilter</filter-name>
-    <servlet-name>DispatcherServlet</servlet-name>
-  </filter-mapping>
-
-  <!--
-    - Use the Cocoon debug filter together with the Cocoon demo webapp
-  <filter-mapping>
-    <filter-name>CocoonDebugFilter</filter-name>
-    <servlet-name>Cocoon</servlet-name>
-  </filter-mapping>
-    -->
-
-  <!-- Servlet Context Listener ======================================= -->
-
-  <!--
-    - Declare Spring context listener which sets up the Spring Application Context
-    - containing all Cocoon components (and user defined beans as well).
-    -->
-  <listener>
-    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-  </listener>
-
-  <!--
-    - Declare Spring request listener which sets up the required RequestAttributes
-    - to support Springs and Cocoon custom bean scopes like the request scope or the
-    - session scope.
-    -->
-  <listener>
-    <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
-  </listener>
-
-  <!-- Servlet Configuration ========================================== -->
-
-  <!--
-    - Servlet that dispatches requests to the Spring managed block servlets
-    -->
-  <servlet>
-    <description>Cocoon blocks dispatcher</description>
-    <display-name>DispatcherServlet</display-name>
-    <servlet-name>DispatcherServlet</servlet-name>
-    <servlet-class>org.apache.cocoon.servletservice.DispatcherServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-
-  <!-- URL space mappings ============================================= -->
-
-  <!--
-    - Cocoon handles all the URL space assigned to the webapp using its sitemap.
-    - It is recommended to leave it unchanged. Under some circumstances though
-    - (like integration with proprietary webapps or servlets) you might have
-    - to change this parameter.
-    -->
-  <servlet-mapping>
-    <servlet-name>DispatcherServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
-  </servlet-mapping>
+    <!--所有*.do 请求都会被springMVC拦截-->
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>*.do</url-pattern>
+    </servlet-mapping>
 
 </web-app>
-        
+
