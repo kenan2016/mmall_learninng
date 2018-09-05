@@ -8,7 +8,7 @@
      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
      http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
      http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
-    <!--这里同样配置了一个包下类中注解扫描。-->
+    <!--这里同样配置了一个类中扫描-->
     <context:component-scan base-package="com.mmall" annotation-config="true"/>
 
     <bean id="propertyConfigurer"
@@ -40,12 +40,12 @@
         <!-- 最大建立连接等待时间。如果超过此时间将接到异常。设为－1表示无限制 -->
         <property name="maxWait" value="${db.maxWait}"/>
         <!--#给出一条简单的sql语句进行验证 -->
-         <!--<property name="validationQuery" value="select getdate()" />-->
+        <!--<property name="validationQuery" value="select getdate()" />-->
         <property name="defaultAutoCommit" value="${db.defaultAutoCommit}"/>
         <!-- 回收被遗弃的（一般是忘了释放的）数据库连接到连接池中 -->
-         <!--<property name="removeAbandoned" value="true" />-->
+        <!--<property name="removeAbandoned" value="true" />-->
         <!-- 数据库连接过多长时间不用将被视为被遗弃而收回连接池中 -->
-         <!--<property name="removeAbandonedTimeout" value="120" />-->
+        <!--<property name="removeAbandonedTimeout" value="120" />-->
         <!-- #连接的超时时间，默认为半小时。 -->
         <property name="minEvictableIdleTimeMillis" value="${db.minEvictableIdleTimeMillis}"/>
 
@@ -67,6 +67,7 @@
                 <bean class="com.github.pagehelper.PageHelper">
                     <property name="properties">
                         <value>
+                            <!--数据库方言是mysql-->
                             dialect=mysql
                         </value>
                     </property>
@@ -76,6 +77,7 @@
 
     </bean>
 
+    <!--mybatis扫描dao层-->
     <bean name="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <property name="basePackage" value="com.mmall.dao"/>
     </bean>
@@ -85,6 +87,7 @@
     <!-- 事务管理 -->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
+        <!--true:表示发生错误时，事务回滚-->
         <property name="rollbackOnCommitFailure" value="true"/>
     </bean>
 
