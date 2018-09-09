@@ -151,4 +151,18 @@
       update_time = now()
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <select id="checkUsername" resultType="int" parameterType="java.lang.String">
+    select count(1) from mmall_user where username = #{username}
+  </select>
+
+  <!--注意resultMap 和resultType-->
+  <select id="selectLogin" resultMap="BaseResultMap" parameterType="map">
+    select <include refid="Base_Column_List"/>
+          from mmall_user where username = #{username} and password = #{password}
+  </select>
+
+  <select id="checkEmail" resultType="int" parameterType="com.mmall.pojo.User">
+    select count(1) from mmall_user where email = #{email}
+  </select>
 </mapper>
