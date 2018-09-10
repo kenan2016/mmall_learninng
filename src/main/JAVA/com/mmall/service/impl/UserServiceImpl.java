@@ -2,6 +2,7 @@ package com.mmall.service.impl;
 
 import com.mmall.common.Const;
 import com.mmall.common.ServerResponse;
+import com.mmall.common.TokenCache;
 import com.mmall.dao.UserMapper;
 import com.mmall.pojo.User;
 import com.mmall.service.IUserService;
@@ -10,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 /**
  * @author kenan
@@ -36,7 +39,7 @@ public class UserServiceImpl implements IUserService {
         }
         //将密码置空后再返回user对象，防止在网络中用户信息被截获
         user.setPassword(StringUtils.EMPTY);
-        return ServerResponse.createBySuccessMessage("登录成功",user);
+        return ServerResponse.createBySuccess("登录成功", user);
     }
 
     @Override
@@ -83,5 +86,34 @@ public class UserServiceImpl implements IUserService {
             return ServerResponse.createBySuccessMessage("参数错误！");
         }
         return ServerResponse.createBySuccessMessage("校验成功！");
+    }
+
+    @Override
+    public ServerResponse selectQuestion(String username){
+
+        ServerResponse validResponse = this.checkValid(username,Const.USERNAME);
+        if(validResponse.isSuccess()){
+            //用户不存在
+            return ServerResponse.createByErrorMessage("用户不存在");
+        }
+        String question = userMapper.selectQuestionByUsername(username);
+        if(StringUtils.isNotBlank(question)){
+            return ServerResponse.createBySuccess(question);
+        }
+        return ServerResponse.createByErrorMessage("找回密码的问题是空的");
+    }
+
+    // 使用了缓存
+    @Override
+    public ServerResponse<String> checkAnswer(String username,String question,String answer){
+        int resultCount = userMapper.checkAnswer(username,question,answer);
+        if(resultCount>0){
+            //说明问题及问题答案是这个用户的,并且是正确的,回答正确后生成Token. 这里生成token 是为了记录鉴权安全（有效期12小时）。
+            // 生成Token,并将Token放入guava缓存
+            String forgetToken = UUID.randomUUID().toString();
+            TokenCache.setKey(TokenCache.TOKEN_PREFIX+username,forgetToken);
+            return ServerResponse.createBySuccess(forgetToken);
+        }
+        return ServerResponse.createByErrorMessage("问题的答案错误");
     }
 }

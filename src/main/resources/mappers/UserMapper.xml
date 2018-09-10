@@ -165,4 +165,20 @@
   <select id="checkEmail" resultType="int" parameterType="com.mmall.pojo.User">
     select count(1) from mmall_user where email = #{email}
   </select>
+
+  <select id="selectQuestionByUsername" resultType="string" parameterType="string">
+    select
+    question
+    from mmall_user
+    where username = #{username}
+  </select>
+
+  <select id="checkAnswer" resultType="int" parameterType="map">
+    SELECT
+    count(1)
+    from mmall_user
+    where username=#{username}
+    and question = #{question}
+    and answer = #{answer}
+  </select>
 </mapper>
