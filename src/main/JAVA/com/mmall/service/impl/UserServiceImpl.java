@@ -116,4 +116,34 @@ public class UserServiceImpl implements IUserService {
         }
         return ServerResponse.createByErrorMessage("问题的答案错误");
     }
+
+    @Override
+    public ServerResponse<String> forgetResetPassword(String username, String passwordNew, String forgetToken) {
+        if (forgetToken == null || StringUtils.isBlank(forgetToken)) {
+            ServerResponse.createByErrorMessage("token无效！");
+        }
+        // 我们继续校验一下username.
+        ServerResponse validServerResponse = this.checkValid(username, Const.USERNAME);
+        if (validServerResponse.isSuccess()) {
+            // 这里的isSuccess 表示用户不存在
+            return ServerResponse.createByErrorMessage("用户不存在");
+        }
+        // 根据用户名和“token_”作为key从guava缓存中获取token
+        String token = TokenCache.getKey(TokenCache.TOKEN_PREFIX+username);
+
+        if (StringUtils.isBlank(token)) {
+            return ServerResponse.createByErrorMessage("Token 无效或者已过期");
+        }
+        if (StringUtils.equals(token, forgetToken)) {
+            String md5Password = MD5Util.MD5EncodeUtf8(passwordNew);
+            int rowCount = userMapper.updatePwdByUsername(username, md5Password);
+            if (rowCount > 0) {
+                return ServerResponse.createBySuccessMessage("密码修改成功！");
+            } else {
+                // 如果传来的Token 和后端Cache 里的值不一样，返回错误提示
+                return ServerResponse.createByErrorMessage("Token错误，请重新获取重置密码的token");
+            }
+        }
+        return ServerResponse.createByErrorMessage("修改密码失败");
+    }
 }

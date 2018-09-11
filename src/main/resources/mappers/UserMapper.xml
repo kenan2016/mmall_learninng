@@ -181,4 +181,13 @@
     and question = #{question}
     and answer = #{answer}
   </select>
+
+  <update id="updatePwdByUsername" parameterType="Map">
+    UPDATE  mmall_user SET
+    password = #{passwordNew},
+    update_time = now()
+
+    where username = #{username}
+
+  </update>
 </mapper>

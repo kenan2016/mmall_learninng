@@ -113,12 +113,25 @@ public class UserController {
     * 这里的token生成后,返回给前端之后，前端要带着这个token来调用下一个接口（忘记密码中的重置密码接口）
     * @author kenan
     * @date 2018/9/10
-    * @param [username, question, answer]
+    * @param username, question, answer
     * @return com.mmall.common.ServerResponse<java.lang.String>
     */
     @RequestMapping(value = "forget_check_answer.do",method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> forgetCheckAnswer(String username,String question,String answer){
         return iUserService.checkAnswer(username,question,answer);
+    }
+
+    /**
+    * 忘记密码时的重置密码
+    * @author kenan
+    * @date 2018/9/11
+    * @param username：用户名, passwordNew 新密码, forgetToken： token
+    * @return com.mmall.common.ServerResponse<java.lang.String>
+    */
+    @RequestMapping(value = "forgegit t_reset_password.do",method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<String> forgetResetPassword(String username, String passwordNew, String forgetToken) {
+        return iUserService.forgetResetPassword(username, passwordNew, forgetToken);
     }
 }
