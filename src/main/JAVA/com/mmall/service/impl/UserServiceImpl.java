@@ -69,7 +69,8 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public ServerResponse<String> checkValid(String str, String type) {
-        if (StringUtils.isNotBlank(type)) {//isNotBlank 如果值是“   ” 也会返回 false
+        //isNotBlank 如果值是“   ” 也会返回 false
+        if (StringUtils.isNotBlank(type)) {
             // 开始校验
             if (Const.USERNAME.equals(type)) {
                 int resultCount = this.userMapper.checkUsername(str);
@@ -145,5 +146,41 @@ public class UserServiceImpl implements IUserService {
             }
         }
         return ServerResponse.createByErrorMessage("修改密码失败");
+    }
+    @Override
+    public ServerResponse<String> resetPassword(String passwordOld, String passwordNew, User user) {
+        // 防止纵向越权，一定要校验一下这个用户的旧密码，一定要指定是这个用户，因为我们会查询一个count(1) 出来,而且要指定id count 出来的的值也一定是 要 大于0 的
+        int resultCount = userMapper.checkPassword(MD5Util.MD5EncodeUtf8(passwordOld), user.getId());
+        if (resultCount == 0) {
+            return ServerResponse.createByErrorMessage("旧密码错误");
+        }
+        user.setPassword(MD5Util.MD5EncodeUtf8(passwordNew));
+        int updateCount = userMapper.updateByPrimaryKeySelective(user);
+        if (updateCount > 0) {
+            return ServerResponse.createBySuccessMessage("密码更新成功!");
+        }
+        return ServerResponse.createByErrorMessage("密码更新失败！");
+    }
+
+    @Override
+    public ServerResponse<User> updateInformation(User user) {
+        // username 不能被更新
+        // email 也要加一个校验，因为如要更新的email 是被别人占用的email 那么就要告诉用户该邮箱别人占用，你无权更新。
+        int resultCount = userMapper.checkEmailByUserId(user.getEmail(), user.getId());
+        if (resultCount > 0 ) {
+            // 说明这个邮箱已经被占用
+            return ServerResponse.createByErrorMessage("邮箱已被占用，请换一个邮箱进行更新");
+        }
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setEmail(user.getEmail());
+        updateUser.setPhone(user.getPhone());
+        updateUser.setAnswer(user.getAnswer());
+        updateUser.setQuestion(user.getQuestion());
+        int updateCount = userMapper.updateByPrimaryKeySelective(updateUser);
+        if (updateCount > 0) {
+            return ServerResponse.createBySuccess("更新成功！", updateUser);
+        }
+        return  ServerResponse.createByErrorMessage("更新个人信息失败！");
     }
 }

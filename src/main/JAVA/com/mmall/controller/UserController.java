@@ -4,6 +4,7 @@ import com.mmall.common.Const;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.User;
 import com.mmall.service.IUserService;
+import com.mysql.fabric.Server;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -129,9 +130,51 @@ public class UserController {
     * @param username：用户名, passwordNew 新密码, forgetToken： token
     * @return com.mmall.common.ServerResponse<java.lang.String>
     */
-    @RequestMapping(value = "forgegit t_reset_password.do",method = RequestMethod.POST)
+    @RequestMapping(value = "forget_reset_password.do",method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> forgetResetPassword(String username, String passwordNew, String forgetToken) {
         return iUserService.forgetResetPassword(username, passwordNew, forgetToken);
+    }
+
+    /**
+    * 用户登录情况下的重置密码
+    * @author kenan
+    * @date 2018/9/14
+    * @param
+    * @return
+    */
+    @RequestMapping(value = "reset_password.do",method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<String> resetPassword (HttpSession session, String passwordOld, String passworldNew) {
+        User user = (User) session.getAttribute(Const.CURRENT_USER);
+        if (user == null) {
+            return ServerResponse.createByErrorMessage("用户未登录！");
+        }
+        return iUserService.resetPassword(passwordOld, passworldNew, user);
+    }
+    /**修改用户信息
+     * 我们需要将新的用户信息 返回给前端，同时更新session里的用户信息
+    * @author kenan
+    * @date 2018/9/14
+    * @param
+    * @return
+    */
+    @RequestMapping(value = "update_information.do",method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse<User> updateInformation(HttpSession session, User user) {
+        User currentUser = (User) session.getAttribute(Const.CURRENT_USER);
+        if (currentUser == null ) {
+             return ServerResponse.createByErrorMessage("用户未登录！");
+        }
+        // 因为我们前端传过来 的user 是 没有userid 的，所以我们要手动将userid 赋值成当前登录用户的id
+        // 从session的当前用户里获取比从页面上直接传过来要安全。防止越权问题
+        // 另外 用户名也是不能被更新的
+        user.setUsername(user.getUsername());
+        user.setId(currentUser.getId());
+        ServerResponse<User> response = iUserService.updateInformation(user);
+        if (response.isSuccess()) {
+            session.setAttribute(Const.CURRENT_USER, response.getData());
+        }
+        return response;
     }
 }
