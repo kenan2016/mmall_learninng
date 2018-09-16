@@ -45,7 +45,7 @@ public class UserController {
     * @param
     * @return
     */
-    @RequestMapping(value = "/logout.do", method = {RequestMethod.GET})
+    @RequestMapping(value = "/logout.do", method = {RequestMethod.POST})
     @ResponseBody
     public ServerResponse<String> logout (HttpSession session) {
         session.removeAttribute(Const.CURRENT_USER);
@@ -59,7 +59,7 @@ public class UserController {
     * @param
     * @return
     */
-    @RequestMapping(value = "/register.do", method = {RequestMethod.GET})
+    @RequestMapping(value = "/register.do", method = {RequestMethod.POST})
     @ResponseBody
     public ServerResponse<String> register (User user) {
         return iUserService.register(user);
@@ -72,7 +72,7 @@ public class UserController {
     * @param str：表单 某项的值  type：用户名，邮箱
     * @return
     */
-    @RequestMapping(value = "/checkValid.do", method = {RequestMethod.GET})
+    @RequestMapping(value = "/checkValid.do", method = {RequestMethod.POST})
     @ResponseBody
     public ServerResponse<String> checkValid (String str, String type) {
         return iUserService.checkValid(str, type);
@@ -85,7 +85,7 @@ public class UserController {
     * @param
     * @return
     */
-    @RequestMapping(value = "/get_user_info.do", method = {RequestMethod.GET})
+    @RequestMapping(value = "/get_user_info.do", method = {RequestMethod.POST})
     @ResponseBody
     public ServerResponse<User> getUserInfo(HttpSession session) {
         User user = (User) session.getAttribute(Const.CURRENT_USER);
@@ -176,5 +176,23 @@ public class UserController {
             session.setAttribute(Const.CURRENT_USER, response.getData());
         }
         return response;
+    }
+
+    /**
+    * 功能描述
+    * @author kenan
+    * @date 2018/9/16
+    * @param session
+    * @return com.mmall.common.ServerResponse<com.mmall.pojo.User>
+    */
+
+    @ResponseBody
+    @RequestMapping(value = "/get_information.do")
+    public ServerResponse<User> getInformation(HttpSession session) {
+        User currentUser = (User)session.getAttribute(Const.CURRENT_USER);
+        if (currentUser == null) {
+            ServerResponse.createByErrorMessage("还未登录！");
+        }
+        return iUserService.getInformation(currentUser.getId());
     }
 }
