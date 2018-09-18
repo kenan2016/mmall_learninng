@@ -17,9 +17,11 @@
     <appender name="mmall" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!--<File>d:/mmalllog/mmall.log</File>-->
         <!--file 节点配置的是日志文件存放路径-->
-        <File>/developer/apache-tomcat-7.0.73/logs/mmall.log</File>
+        <!--/developer/apache-tomcat-7.0.73/logs/mmall.log-->
+        <!--我测试时直接 将日子文件 写到tomcat log文件下-->
+        <File>D:/TomCat/apache-tomcat-8.0.32/logs/mmall.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/developer/apache-tomcat-7.0.73/logs/mmall.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>D:/TomCat/apache-tomcat-8.0.32/logs/mmall.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
             <append>true</append>
             <!--存放十天的日志信息-->
             <maxHistory>10</maxHistory>
@@ -33,9 +35,10 @@
 <!--error日志信文件（这里 我们只记录error信息到文件）息配置，道理同上-->
     <appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!--<File>d:/mmalllog/error.log</File>-->
-        <File>/developer/apache-tomcat-7.0.73/logs/error.log</File>
+        <File>D:/TomCat/apache-tomcat-8.0.32/logs/error.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/devsoft/apache-tomcat-7.0.73/logs/error.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <!--按天rolling-->
+            <fileNamePattern>D:/TomCat/apache-tomcat-8.0.32/logs/error.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
             <!--<fileNamePattern>d:/mmalllog/error.log.%d{yyyy-MM-dd}.gz</fileNamePattern>-->
             <append>true</append>
             <maxHistory>10</maxHistory>

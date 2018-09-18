@@ -1,4 +1,4 @@
-package com.mmall.controller;
+package com.mmall.controller.portal;
 
 import com.mmall.common.Const;
 import com.mmall.common.ServerResponse;
@@ -179,13 +179,12 @@ public class UserController {
     }
 
     /**
-    * 功能描述
+    *获取用户信息
     * @author kenan
     * @date 2018/9/16
     * @param session
     * @return com.mmall.common.ServerResponse<com.mmall.pojo.User>
     */
-
     @ResponseBody
     @RequestMapping(value = "/get_information.do")
     public ServerResponse<User> getInformation(HttpSession session) {
