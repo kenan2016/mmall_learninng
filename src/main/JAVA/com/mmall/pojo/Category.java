@@ -86,4 +86,31 @@ public class Category {
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
+
+    /**
+    * 重写equals 和 hashcode 方法
+    * @author kenan
+    * @date 2018/9/19
+    * @param
+    * @return
+     * 方法重写时，要把 equals 方法和 hashcode 方法都重写，且判断因子要一样
+    */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Category category = (Category) o;
+
+        return id != null ? id.equals(category.id) : category.id == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }
