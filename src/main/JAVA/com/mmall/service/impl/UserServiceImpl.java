@@ -9,6 +9,7 @@ import com.mmall.service.IUserService;
 import com.mmall.util.MD5Util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +56,6 @@ public class UserServiceImpl implements IUserService {
         }
         // 检验通过后默认给用户设置为普通用户
         user.setRole(Const.Role.ROLE_CUSTOMER);
-
         // 将用户的明文密码进行MD5 加密
         String pwd = MD5Util.MD5EncodeUtf8(user.getPassword());
         user.setPassword(pwd);
@@ -202,5 +202,11 @@ public class UserServiceImpl implements IUserService {
         }
             return ServerResponse.createByError();
     }
+
+
+    public static void main(String[] args) {
+        System.out.printf(MD5Util.MD5EncodeUtf8("123456"));
+    }
+
 
 }
