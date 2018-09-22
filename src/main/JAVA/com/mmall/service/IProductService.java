@@ -3,6 +3,7 @@ package com.mmall.service;
 import com.github.pagehelper.PageInfo;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.Product;
+import com.mmall.vo.ProductDetailVo;
 
 /**
  * Created by kenan
@@ -24,4 +25,6 @@ public interface IProductService {
     * @return com.mmall.common.ServerResponse<java.lang.String>
     */
     ServerResponse<String> setSaleStatus(Integer productId, Integer status);
+
+    ServerResponse<ProductDetailVo> manageProductDetail(Integer productId);
 }
