@@ -182,4 +182,17 @@
     select <include refid="Base_Column_List"></include>
     from mmall_product order by id desc
   </select>
+
+  <select id="getListByNameAndId" resultMap="BaseResultMap" parameterType="Map">
+    select <include refid="Base_Column_List"></include>
+    from mmall_product
+    <where>
+      <if test="productName != null and productName != ''">
+        and name like #{productName}
+      </if>
+      <if test="productId != null and productId != ''">
+        and id = #{productId}
+      </if>
+    </where>
+  </select>
 </mapper>

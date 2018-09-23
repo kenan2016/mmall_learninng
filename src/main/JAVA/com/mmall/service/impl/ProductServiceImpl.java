@@ -28,7 +28,6 @@ import java.util.List;
 @Service("iProductService")
 public class ProductServiceImpl implements IProductService {
 
-
     @Autowired
     private ProductMapper productMapper;
 
@@ -130,7 +129,7 @@ public class ProductServiceImpl implements IProductService {
     * @return com.mmall.common.ServerResponse<com.mmall.vo.ProductDetailVo>
     */
     @Override
-    public ServerResponse<PageInfo> gtList(Integer pageNum, Integer pageSize){
+    public ServerResponse<PageInfo> getList(Integer pageNum, Integer pageSize){
        // startPage:start
        // sql
         // pageHelper 收尾
@@ -163,4 +162,14 @@ public class ProductServiceImpl implements IProductService {
         productListVo.setStatus(product.getStatus());
         return productListVo;
     }
+
+    @Override
+    public ServerResponse getListByNameAndId(Integer pageNum, Integer pageSize, String productName, Integer productId) {
+        if (productName != null ) {
+            productName = new StringBuilder().append(" %").append(productName).append("%").toString();
+        }
+        List<Product> list = productMapper.getListByNameAndId(pageNum, pageSize, productName, productId);
+        return null;
+    }
+
 }

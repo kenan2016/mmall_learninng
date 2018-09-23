@@ -28,5 +28,7 @@ public interface IProductService {
 
     ServerResponse<ProductDetailVo> manageProductDetail(Integer productId);
 
-    ServerResponse<PageInfo> gtList(Integer pageNum, Integer pageSize);
+    ServerResponse<PageInfo> getList(Integer pageNum, Integer pageSize);
+
+    ServerResponse getListByNameAndId(Integer pageNum, Integer pageSize, String productName, Integer productId);
 }

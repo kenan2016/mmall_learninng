@@ -97,10 +97,32 @@ public class ProductManageController {
         }
         if(iUserService.checkAdminRole(user).isSuccess()){
             //填充业务
-           return iProductService.gtList(pageNum, pageSize);
+           return iProductService.getList(pageNum, pageSize);
         }else{
             return ServerResponse.createByErrorMessage("无权限操作");
         }
     }
 
+    /**
+    * 查询产品
+    * @author kenan
+    * @date 2018/9/23
+    * @param
+    * @return
+    */
+    @RequestMapping("search.do")
+    @ResponseBody
+    public ServerResponse searchProduct(HttpSession session, String productName, Integer productId, Integer pageNum, Integer pageSize) {
+        User user = (User) session.getAttribute(Const.CURRENT_USER);
+        if (user == null) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录,请登录管理员");
+
+        }
+        if (iUserService.checkAdminRole(user).isSuccess()) {
+            //填充业务
+            return iProductService.getListByNameAndId(pageNum, pageSize, productName, productId);
+        } else {
+            return ServerResponse.createByErrorMessage("无权限操作");
+        }
+    }
 }
