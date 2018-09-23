@@ -176,4 +176,10 @@
       update_time = now()
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <!--注意这里不可以增加;  否则 mybatis pageHelper 会 在 ； 后加limit 11,20 语会报错-->
+  <select id="selectList" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"></include>
+    from mmall_product order by id desc
+  </select>
 </mapper>

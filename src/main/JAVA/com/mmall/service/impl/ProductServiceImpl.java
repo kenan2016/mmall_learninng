@@ -1,5 +1,8 @@
 package com.mmall.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.google.common.collect.Lists;
 import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.dao.CategoryMapper;
@@ -11,9 +14,12 @@ import com.mmall.service.IProductService;
 import com.mmall.util.DateTimeUtil;
 import com.mmall.util.PropertiesUtil;
 import com.mmall.vo.ProductDetailVo;
+import com.mmall.vo.ProductListVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 /**
@@ -114,5 +120,47 @@ public class ProductServiceImpl implements IProductService {
         productDetailVo.setCreateTime(DateTimeUtil.dateToStr(product.getCreateTime()));
         productDetailVo.setUpdateTime(DateTimeUtil.dateToStr(product.getUpdateTime()));
         return productDetailVo;
+    }
+
+    /**
+    * mybatisHelper 会利用Aop 捕获查询 list 的语句 然后去查询count
+    * @author kenan
+    * @date 2018/9/23
+    * @param pageNum：开始页数, pageSize：页面容量
+    * @return com.mmall.common.ServerResponse<com.mmall.vo.ProductDetailVo>
+    */
+    @Override
+    public ServerResponse<PageInfo> gtList(Integer pageNum, Integer pageSize){
+       // startPage:start
+       // sql
+        // pageHelper 收尾
+
+        PageHelper.startPage(pageNum, pageSize);
+
+        List<Product> list = productMapper.selectList();
+        List<ProductListVo> listVos = Lists.newArrayList();
+        for (Product product : list) {
+            ProductListVo productListVo = assembleProductListVo(product);
+            listVos.add(productListVo);
+        }
+        // 注意这里一定要传是sql查出来的list 对象。
+        PageInfo pageResult = new PageInfo(list);
+
+        // 将page对象里的 list 对象重置新的list
+        pageResult.setList(listVos);
+        return ServerResponse.createBySuccess(pageResult);
+    }
+
+    private ProductListVo assembleProductListVo(Product product){
+        ProductListVo productListVo = new ProductListVo();
+        productListVo.setId(product.getId());
+        productListVo.setName(product.getName());
+        productListVo.setCategoryId(product.getCategoryId());
+        productListVo.setImageHost(PropertiesUtil.getProperty("ftp.server.http.prefix","http://img.happymmall.com/"));
+        productListVo.setMainImage(product.getMainImage());
+        productListVo.setPrice(product.getPrice());
+        productListVo.setSubtitle(product.getSubtitle());
+        productListVo.setStatus(product.getStatus());
+        return productListVo;
     }
 }

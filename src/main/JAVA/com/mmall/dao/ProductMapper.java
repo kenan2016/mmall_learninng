@@ -1,6 +1,10 @@
 package com.mmall.dao;
 
 import com.mmall.pojo.Product;
+import com.mmall.vo.ProductDetailVo;
+import com.mmall.vo.ProductListVo;
+
+import java.util.List;
 
 public interface ProductMapper {
     int deleteByPrimaryKey(Integer id);
@@ -14,4 +18,7 @@ public interface ProductMapper {
     int updateByPrimaryKeySelective(Product record);
 
     int updateByPrimaryKey(Product record);
+
+    List<Product> selectList();
+
 }
