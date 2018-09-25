@@ -9,6 +9,7 @@ import com.mmall.service.IFileService;
 import com.mmall.service.IProductService;
 import com.mmall.service.IUserService;
 import com.mmall.util.PropertiesUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -136,19 +138,91 @@ public class ProductManageController {
         }
     }
 
+    /**
+    * 文件上传
+    * @author kenan
+    * @date 2018/9/26
+    * @param session：为了防止接口被人恶意调用，这里也要加上权限判断, multipartFile, request
+    * @return com.mmall.common.ServerResponse
+    */
     @RequestMapping("upload.do")
     @ResponseBody
-    public ServerResponse upload(MultipartFile multipartFile, HttpServletRequest request){
-        String path = request.getServletContext().getRealPath("upload");
-        String targetFileName = iFileService.upload(multipartFile, path);
-       // 我们和前端约定，我们要将url拼接出来传给前端，这样 前端拿到图片地址就直接可用了
-        // 注意这里一定要有 /  因为 targetFileName 是没有斜杠的，所以这里要保证 url 正确性
-        String url = PropertiesUtil.getProperty("ftp.server.http.prefix")+targetFileName;
+    public ServerResponse upload( HttpSession session,  @RequestParam(value = "upload_file", required = false) MultipartFile multipartFile, HttpServletRequest request){
+        User user = (User) session.getAttribute(Const.CURRENT_USER);
+        if (user == null) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录,请登录管理员");
+        }
+        if (iUserService.checkAdminRole(user).isSuccess()) {
+            //填充业务
+            String path = request.getServletContext().getRealPath("upload");
+            String targetFileName = iFileService.upload(multipartFile, path);
+            // 我们和前端约定，我们要将url拼接出来传给前端，这样 前端拿到图片地址就直接可用了
+            // 注意这里一定要有 /  因为 targetFileName 是没有斜杠的，所以这里要保证 url 正确性
+            String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFileName;
 
-        //这里使用guava工具类里的创建Map 的方法
-        Map fileMap = Maps.newHashMap();
-        fileMap.put("uri", targetFileName);
-        fileMap.put("url", url);
-        return ServerResponse.createBySuccess(fileMap);
+            //这里使用guava工具类里的创建Map 的方法
+            Map fileMap = Maps.newHashMap();
+            fileMap.put("uri", targetFileName);
+            fileMap.put("url", url);
+            return ServerResponse.createBySuccess(fileMap);
+        } else {
+            return ServerResponse.createByErrorMessage("您无权限操作，请登录管理员");
+        }
+    }
+
+    /**
+    * 富文本中图片上传
+    * @author kenan
+    * @date 2018/9/26
+    * @param
+    * @return
+    */
+    @RequestMapping("richtext_img_upload.do")
+    @ResponseBody
+    public Map<String, Object> richtextImgUpload(HttpSession session, @RequestParam(value = "richtext_img_upload", required = false) MultipartFile multipartFile, HttpServletRequest request, HttpServletResponse response){
+        Map<String, Object> map = Maps.newHashMap();
+
+        /**
+        * {
+         "success": true/false,
+         "msg": "error message", # optional
+         "file_path": "[real file path]"
+         }
+        */
+        User user = (User) session.getAttribute(Const.CURRENT_USER);
+        if (user == null) {
+            map.put("success", false);
+            map.put("msg","文件上传失败，用户未登录,请登录管理员");
+            return map;
+        }
+        // 注意富文本中对返回值有特殊要求。我们使用的富文本编辑器是simditord,按其要求返回
+        // https://simditor.tower.im/   阅读JSON response after uploading complete:说明
+        if (iUserService.checkAdminRole(user).isSuccess()) {
+            //填充业务
+            String path = request.getServletContext().getRealPath("upload");
+            String targetFileName = iFileService.upload(multipartFile, path);
+            if (StringUtils.isBlank(targetFileName)) {
+                map.put("success", false);
+                map.put("msg","文件上传失败");
+                return map;
+
+            }
+            // 我们和前端约定，我们要将url拼接出来传给前端，这样 前端拿到图片地址就直接可用了
+            // 注意这里一定要有 /  因为 targetFileName 是没有斜杠的，所以这里要保证 url 正确性
+            String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFileName;
+            map.put("success", true);
+            map.put("msg","文件上传成功");
+            map.put("file_path", url);
+            // 富文本编辑器还要求addHader
+
+            //这里使用guava工具类里的创建Map 的方法
+
+            response.addHeader("Access-Control-Allow-Headers", "X-File-Name");
+            return map;
+        } else {
+            map.put("success", false);
+            map.put("msg","文件上传失败");
+            return map;
+        }
     }
 }
