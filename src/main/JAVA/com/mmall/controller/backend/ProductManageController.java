@@ -1,17 +1,25 @@
 package com.mmall.controller.backend;
+import com.google.common.collect.Maps;
 import com.mmall.common.Const;
 import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.Product;
 import com.mmall.pojo.User;
+import com.mmall.service.IFileService;
 import com.mmall.service.IProductService;
 import com.mmall.service.IUserService;
+import com.mmall.util.PropertiesUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.lang.reflect.Field;
+import java.util.Map;
 
 /**
  * Created by kenan
@@ -25,6 +33,8 @@ public class ProductManageController {
     private IUserService iUserService;
     @Autowired
     private IProductService iProductService;
+    @Autowired
+    private IFileService iFileService;
 
     @RequestMapping("save.do")
     @ResponseBody
@@ -61,7 +71,7 @@ public class ProductManageController {
     * 根据id查询产品详情
     * @author kenan
     * @date 2018/9/22
-    * @param [session, productId, status]
+    * @param session, productId, status
     * @return com.mmall.common.ServerResponse
     */
     @RequestMapping("detail.do")
@@ -124,5 +134,21 @@ public class ProductManageController {
         } else {
             return ServerResponse.createByErrorMessage("无权限操作");
         }
+    }
+
+    @RequestMapping("upload.do")
+    @ResponseBody
+    public ServerResponse upload(MultipartFile multipartFile, HttpServletRequest request){
+        String path = request.getServletContext().getRealPath("upload");
+        String targetFileName = iFileService.upload(multipartFile, path);
+       // 我们和前端约定，我们要将url拼接出来传给前端，这样 前端拿到图片地址就直接可用了
+        // 注意这里一定要有 /  因为 targetFileName 是没有斜杠的，所以这里要保证 url 正确性
+        String url = PropertiesUtil.getProperty("ftp.server.http.prefix")+targetFileName;
+
+        //这里使用guava工具类里的创建Map 的方法
+        Map fileMap = Maps.newHashMap();
+        fileMap.put("uri", targetFileName);
+        fileMap.put("url", url);
+        return ServerResponse.createBySuccess(fileMap);
     }
 }

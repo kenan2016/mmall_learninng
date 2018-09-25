@@ -24,31 +24,7 @@ public class FTPUtil {
     private int port;
     private String user;
     private String pwd;
-    private FTPClient ftpClient;
-
-    public static String getFtpIp() {
-        return ftpIp;
-    }
-
-    public static void setFtpIp(String ftpIp) {
-        FTPUtil.ftpIp = ftpIp;
-    }
-
-    public static String getFtpUser() {
-        return ftpUser;
-    }
-
-    public static void setFtpUser(String ftpUser) {
-        FTPUtil.ftpUser = ftpUser;
-    }
-
-    public static String getFtpPass() {
-        return ftpPass;
-    }
-
-    public static void setFtpPass(String ftpPass) {
-        FTPUtil.ftpPass = ftpPass;
-    }
+    private FTPClient ftpClient; // appache
 
     public String getIp() {
         return ip;
@@ -131,6 +107,7 @@ public class FTPUtil {
         boolean uploaded = true;
         FileInputStream fis = null;
         // 连接ftp 服务器
+        // 判断是否连接成功
        if ( this.connectServer(this.ip, this.port, this.user, this.pwd)) {
            // 是否切换文件夹
            try {
@@ -140,7 +117,7 @@ public class FTPUtil {
                ftpClient.setControlEncoding("UTF-8");
                // 文件类型  是一个二进制的文件类型。这样可以更通用。和防止乱码问题
                ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
-               // 因为我们前段时间这只的linux vsftpd 是一个被动模式、且有端口范围。
+               // 因为我们前段时间设置的linux vsftpd 是一个被动模式、且有端口范围。
                // 打开(本地的？？)被动模式
                ftpClient.enterLocalPassiveMode();
                // 遍历fileList
