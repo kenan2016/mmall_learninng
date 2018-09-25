@@ -110,9 +110,13 @@ public class FTPUtil {
      * @date 2018/9/25
      * @param
      * @return
+     * img默认将文件上传到immg文件夹下
      */
-    public static boolean uploadFile(List<File> fileList){
+    public static boolean uploadFile(List<File> fileList) throws IOException {
         FTPUtil ftpUtil = new FTPUtil(ftpIp, 21, ftpUser, ftpPass);
+        logger.info("开始连接ftp服务器");
+        boolean result = ftpUtil.uploadFile("img",fileList);
+        logger.info("结束上传，上传结果是：{}" , result);
         return false;
     }
 
@@ -139,7 +143,6 @@ public class FTPUtil {
                // 因为我们前段时间这只的linux vsftpd 是一个被动模式、且有端口范围。
                // 打开(本地的？？)被动模式
                ftpClient.enterLocalPassiveMode();
-
                // 遍历fileList
                for (File fileItem : fileList) {
                    // 将文件转换成流对象
