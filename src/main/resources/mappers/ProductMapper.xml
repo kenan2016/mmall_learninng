@@ -40,7 +40,7 @@
     values (#{id,jdbcType=INTEGER}, #{categoryId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, 
       #{subtitle,jdbcType=VARCHAR}, #{mainImage,jdbcType=VARCHAR}, #{subImages,jdbcType=VARCHAR}, 
       #{detail,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL}, #{stock,jdbcType=INTEGER}, 
-      #{status,jdbcType=INTEGER}, now(),now()
+      #{status,jdbcType=INTEGER}, now(), now()
       )
   </insert>
   <insert id="insertSelective" parameterType="com.mmall.pojo.Product" >
@@ -115,7 +115,7 @@
         #{status,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
-        #{createTime,jdbcType=TIMESTAMP},
+        now(),
       </if>
       <if test="updateTime != null" >
         now(),
@@ -177,22 +177,43 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
-  <!--注意这里不可以增加;  否则 mybatis pageHelper 会 在 ； 后加limit 11,20 语会报错-->
-  <select id="selectList" resultMap="BaseResultMap">
-    select <include refid="Base_Column_List"></include>
-    from mmall_product order by id desc
+
+  <select id="selectList" resultMap="BaseResultMap" >
+    SELECT
+    <include refid="Base_Column_List"/>
+    from mmall_product
+    ORDER BY id asc
   </select>
 
-  <select id="getListByNameAndId" resultMap="BaseResultMap" parameterType="Map">
-    select <include refid="Base_Column_List"></include>
+
+  <select id="selectByNameAndProductId" resultMap="BaseResultMap" parameterType="map">
+    SELECT
+    <include refid="Base_Column_List"/>
     from mmall_product
     <where>
-      <if test="productName != null and productName != ''">
+      <if test="productName != null">
         and name like #{productName}
       </if>
-      <if test="productId != null and productId != ''">
+      <if test="productId != null">
         and id = #{productId}
       </if>
     </where>
   </select>
+  
+  <select id="selectByNameAndCategoryIds" resultMap="BaseResultMap" parameterType="map">
+    SELECT
+    <include refid="Base_Column_List"></include>
+    from mmall_product
+    where status = 1
+    <if test="productName != null">
+      and name like #{productName}
+    </if>
+    <if test="categoryIdList != null" >
+      and category_id in
+      <foreach item="item" index="index" open="(" separator="," close=")" collection="categoryIdList">
+        #{item}
+      </foreach>
+    </if>
+  </select>
+
 </mapper>

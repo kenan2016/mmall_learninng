@@ -6,29 +6,24 @@ import com.mmall.pojo.Product;
 import com.mmall.vo.ProductDetailVo;
 
 /**
- * Created by kenan
+ * Created by geely
  */
 public interface IProductService {
-    /**
-    * 功能描述
-    * @author kenan
-    * @date 2018/9/21
-    * @param
-    * @return com.mmall.common.ServerResponse
-    */
+
     ServerResponse saveOrUpdateProduct(Product product);
-    /**
-    * 功能描述
-    * @author kenan
-    * @date 2018/9/21
-    * @param
-    * @return com.mmall.common.ServerResponse<java.lang.String>
-    */
+
     ServerResponse<String> setSaleStatus(Integer productId, Integer status);
 
     ServerResponse<ProductDetailVo> manageProductDetail(Integer productId);
 
-    ServerResponse<PageInfo> getList(Integer pageNum, Integer pageSize);
+    ServerResponse<PageInfo> getProductList(int pageNum, int pageSize);
 
-    ServerResponse getListByNameAndId(Integer pageNum, Integer pageSize, String productName, Integer productId);
+    ServerResponse<PageInfo> searchProduct(String productName, Integer productId, int pageNum, int pageSize);
+
+    ServerResponse<ProductDetailVo> getProductDetail(Integer productId);
+
+    ServerResponse<PageInfo> getProductByKeywordCategory(String keyword, Integer categoryId, int pageNum, int pageSize, String orderBy);
+
+
+
 }

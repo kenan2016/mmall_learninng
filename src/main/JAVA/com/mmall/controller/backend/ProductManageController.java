@@ -1,4 +1,5 @@
 package com.mmall.controller.backend;
+
 import com.google.common.collect.Maps;
 import com.mmall.common.Const;
 import com.mmall.common.ResponseCode;
@@ -20,11 +21,10 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
- * Created by kenan
+ * Created by geely
  */
 
 @Controller
@@ -69,13 +69,6 @@ public class ProductManageController {
         }
     }
 
-    /**
-    * 根据id查询产品详情
-    * @author kenan
-    * @date 2018/9/22
-    * @param session, productId, status
-    * @return com.mmall.common.ServerResponse
-    */
     @RequestMapping("detail.do")
     @ResponseBody
     public ServerResponse getDetail(HttpSession session, Integer productId){
@@ -92,16 +85,10 @@ public class ProductManageController {
             return ServerResponse.createByErrorMessage("无权限操作");
         }
     }
-    /**
-     * 根据id查询产品详情
-     * @author kenan
-     * @date 2018/9/22
-     * @param
-     * @return com.mmall.common.ServerResponse
-     */
+
     @RequestMapping("list.do")
     @ResponseBody
-    public ServerResponse getList(HttpSession session, @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum, @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize){
+    public ServerResponse getList(HttpSession session, @RequestParam(value = "pageNum",defaultValue = "1") int pageNum,@RequestParam(value = "pageSize",defaultValue = "10") int pageSize){
         User user = (User)session.getAttribute(Const.CURRENT_USER);
         if(user == null){
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),"用户未登录,请登录管理员");
@@ -109,120 +96,113 @@ public class ProductManageController {
         }
         if(iUserService.checkAdminRole(user).isSuccess()){
             //填充业务
-           return iProductService.getList(pageNum, pageSize);
+            return iProductService.getProductList(pageNum,pageSize);
         }else{
             return ServerResponse.createByErrorMessage("无权限操作");
         }
     }
 
-    /**
-    * 查询产品
-    * @author kenan
-    * @date 2018/9/23
-    * @param
-    * @return
-    */
     @RequestMapping("search.do")
     @ResponseBody
-    public ServerResponse searchProduct(HttpSession session, String productName, Integer productId, Integer pageNum, Integer pageSize) {
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录,请登录管理员");
+    public ServerResponse productSearch(HttpSession session,String productName,Integer productId, @RequestParam(value = "pageNum",defaultValue = "1") int pageNum,@RequestParam(value = "pageSize",defaultValue = "10") int pageSize){
+        User user = (User)session.getAttribute(Const.CURRENT_USER);
+        if(user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),"用户未登录,请登录管理员");
 
         }
-        if (iUserService.checkAdminRole(user).isSuccess()) {
+        if(iUserService.checkAdminRole(user).isSuccess()){
             //填充业务
-            return iProductService.getListByNameAndId(pageNum, pageSize, productName, productId);
-        } else {
+            return iProductService.searchProduct(productName,productId,pageNum,pageSize);
+        }else{
             return ServerResponse.createByErrorMessage("无权限操作");
         }
     }
 
-    /**
-    * 文件上传
-    * @author kenan
-    * @date 2018/9/26
-    * @param session：为了防止接口被人恶意调用，这里也要加上权限判断, multipartFile, request
-    * @return com.mmall.common.ServerResponse
-    */
     @RequestMapping("upload.do")
     @ResponseBody
-    public ServerResponse upload( HttpSession session,  @RequestParam(value = "upload_file", required = false) MultipartFile multipartFile, HttpServletRequest request){
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录,请登录管理员");
+    public ServerResponse upload(HttpSession session,@RequestParam(value = "upload_file",required = false) MultipartFile file,HttpServletRequest request){
+        User user = (User)session.getAttribute(Const.CURRENT_USER);
+        if(user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),"用户未登录,请登录管理员");
         }
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //填充业务
-            String path = request.getServletContext().getRealPath("upload");
-            String targetFileName = iFileService.upload(multipartFile, path);
-            // 我们和前端约定，我们要将url拼接出来传给前端，这样 前端拿到图片地址就直接可用了
-            // 注意这里一定要有 /  因为 targetFileName 是没有斜杠的，所以这里要保证 url 正确性
-            String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFileName;
+        if(iUserService.checkAdminRole(user).isSuccess()){
+            String path = request.getSession().getServletContext().getRealPath("upload");
+            String targetFileName = iFileService.upload(file,path);
+            String url = PropertiesUtil.getProperty("ftp.server.http.prefix")+targetFileName;
 
-            //这里使用guava工具类里的创建Map 的方法
             Map fileMap = Maps.newHashMap();
-            fileMap.put("uri", targetFileName);
-            fileMap.put("url", url);
+            fileMap.put("uri",targetFileName);
+            fileMap.put("url",url);
             return ServerResponse.createBySuccess(fileMap);
-        } else {
-            return ServerResponse.createByErrorMessage("您无权限操作，请登录管理员");
+        }else{
+            return ServerResponse.createByErrorMessage("无权限操作");
         }
     }
 
-    /**
-    * 富文本中图片上传
-    * @author kenan
-    * @date 2018/9/26
-    * @param
-    * @return
-    */
+
     @RequestMapping("richtext_img_upload.do")
     @ResponseBody
-    public Map<String, Object> richtextImgUpload(HttpSession session, @RequestParam(value = "richtext_img_upload", required = false) MultipartFile multipartFile, HttpServletRequest request, HttpServletResponse response){
-        Map<String, Object> map = Maps.newHashMap();
-
-        /**
-        * {
-         "success": true/false,
-         "msg": "error message", # optional
-         "file_path": "[real file path]"
-         }
-        */
-        User user = (User) session.getAttribute(Const.CURRENT_USER);
-        if (user == null) {
-            map.put("success", false);
-            map.put("msg","文件上传失败，用户未登录,请登录管理员");
-            return map;
+    public Map richtextImgUpload(HttpSession session, @RequestParam(value = "upload_file",required = false) MultipartFile file, HttpServletRequest request, HttpServletResponse response){
+        Map resultMap = Maps.newHashMap();
+        User user = (User)session.getAttribute(Const.CURRENT_USER);
+        if(user == null){
+            resultMap.put("success",false);
+            resultMap.put("msg","请登录管理员");
+            return resultMap;
         }
-        // 注意富文本中对返回值有特殊要求。我们使用的富文本编辑器是simditord,按其要求返回
-        // https://simditor.tower.im/   阅读JSON response after uploading complete:说明
-        if (iUserService.checkAdminRole(user).isSuccess()) {
-            //填充业务
-            String path = request.getServletContext().getRealPath("upload");
-            String targetFileName = iFileService.upload(multipartFile, path);
-            if (StringUtils.isBlank(targetFileName)) {
-                map.put("success", false);
-                map.put("msg","文件上传失败");
-                return map;
-
+        //富文本中对于返回值有自己的要求,我们使用是simditor所以按照simditor的要求进行返回
+//        {
+//            "success": true/false,
+//                "msg": "error message", # optional
+//            "file_path": "[real file path]"
+//        }
+        if(iUserService.checkAdminRole(user).isSuccess()){
+            String path = request.getSession().getServletContext().getRealPath("upload");
+            String targetFileName = iFileService.upload(file,path);
+            if(StringUtils.isBlank(targetFileName)){
+                resultMap.put("success",false);
+                resultMap.put("msg","上传失败");
+                return resultMap;
             }
-            // 我们和前端约定，我们要将url拼接出来传给前端，这样 前端拿到图片地址就直接可用了
-            // 注意这里一定要有 /  因为 targetFileName 是没有斜杠的，所以这里要保证 url 正确性
-            String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFileName;
-            map.put("success", true);
-            map.put("msg","文件上传成功");
-            map.put("file_path", url);
-            // 富文本编辑器还要求addHader
-
-            //这里使用guava工具类里的创建Map 的方法
-
-            response.addHeader("Access-Control-Allow-Headers", "X-File-Name");
-            return map;
-        } else {
-            map.put("success", false);
-            map.put("msg","文件上传失败");
-            return map;
+            String url = PropertiesUtil.getProperty("ftp.server.http.prefix")+targetFileName;
+            resultMap.put("success",true);
+            resultMap.put("msg","上传成功");
+            resultMap.put("file_path",url);
+            response.addHeader("Access-Control-Allow-Headers","X-File-Name");
+            return resultMap;
+        }else{
+            resultMap.put("success",false);
+            resultMap.put("msg","无权限操作");
+            return resultMap;
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

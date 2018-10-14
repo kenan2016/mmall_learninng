@@ -64,7 +64,7 @@ public class FileServiceImpl implements IFileService {
 
             // TODO 上传完之后删除 upload文件夹下的文件
             // 删除tomcat下 该文件，文件夹可以不删除
-            targetFile.delete();
+           // targetFile.delete();
         } catch (IOException e) {
             logger.error("文件上传发生异常", e);
             return null;

@@ -42,7 +42,7 @@ public class TokenCache {
     * 根据key获取缓存中的值
     * @author kenan
     * @date 2018/9/10
-    * @param [key]
+    * @param key
     * @return java.lang.String
     */
     public static String getKey(String key){
