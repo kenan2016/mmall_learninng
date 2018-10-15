@@ -50,7 +50,7 @@
         id,
       </if>
       <if test="categoryId != null" >
-        category_id,
+        category_id,0
       </if>
       <if test="name != null" >
         name,
