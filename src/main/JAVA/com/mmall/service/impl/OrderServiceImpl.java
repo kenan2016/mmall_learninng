@@ -16,10 +16,13 @@ import com.mmall.common.Const;
 import com.mmall.common.ServerResponse;
 import com.mmall.dao.OrderItemMapper;
 import com.mmall.dao.OrderMapper;
+import com.mmall.dao.PayInfoMapper;
 import com.mmall.pojo.Order;
 import com.mmall.pojo.OrderItem;
+import com.mmall.pojo.PayInfo;
 import com.mmall.service.IOrderService;
 import com.mmall.util.BigDecimalUtil;
+import com.mmall.util.DateTimeUtil;
 import com.mmall.util.FTPUtil;
 import com.mmall.util.PropertiesUtil;
 import org.apache.commons.lang.StringUtils;
@@ -48,6 +51,9 @@ public class OrderServiceImpl implements IOrderService {
 
     @Autowired
     private OrderItemMapper orderItemMapper;
+
+    @Autowired
+    private PayInfoMapper payInfoMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
 
@@ -206,10 +212,11 @@ public class OrderServiceImpl implements IOrderService {
     * @param
     * @return
     */
-
+    @Override
     public ServerResponse aliCallback(Map<String, String> params) {
         Long orderNo =  Long.parseLong(params.get("out_trade_no"));//我们自己的业务系统中的单号（由我们原本传过去，现在回调时，支付宝再传过来，然后再由我们自己,校验一下该订单是否存在）
         String tradeNo = params.get("trade_no"); // 支付宝的交易单号
+        String tradeStatus = params.get("trade_status");
         Order order = orderMapper.selectByOrderNo(orderNo);
         if (order == null) {
             return ServerResponse.createByErrorMessage("该订单不存在,非快乐慕商城的订单，回调忽略");
@@ -222,8 +229,33 @@ public class OrderServiceImpl implements IOrderService {
             return ServerResponse.createBySuccess("支付宝重复调用");
         }
 
-        if () {
+        if (Const.AlipayCallback.TRADE_STATUS_TRADE_SUCCESS.equals(tradeStatus)) {
+            // 支付宝回调带来的参数表明支付已经成功,此时我们要调用一下更新系统中订单状态的接口。
+            // 记录交易时间
+            order.setPaymentTime(DateTimeUtil.strToDate(params.get("gmt_payment")));// 该笔交易的买家付款时间。格式为yyyy-MM-dd HH:mm:ss
+            order.setStatus(Const.OrderStatusEnum.PAID.getCode());
+            orderMapper.updateByPrimaryKeySelective(order);
         }
+        PayInfo payInfo = new PayInfo();
+        payInfo.setUserId(order.getUserId());
+        payInfo.setOrderNo(order.getOrderNo());
+        // 这里我们现实值只对接了支付宝
+        payInfo.setPayPlatform(Const.PayPlatformEnum.ALIPAY.getCode());
+        payInfo.setPlatformNumber(tradeNo); // 我们存一下支付宝的交易号
+        payInfo.setPlatformStatus(tradeStatus);// 存一下支付宝的交易状态
+        payInfoMapper.insert(payInfo); // 记录交易信息。也就是 说每一次回调都会被我们记录。
+        return ServerResponse.createBySuccess();
+    }
 
+    public ServerResponse queryOrderPayStatus (Integer userId, long orderNo) {
+        Order order = orderMapper.selectByUserIdAndOrderNo(userId, orderNo);
+        if (order == null) {
+            return ServerResponse.createByErrorMessage("用户没有该订单");
+        }
+        if (order.getStatus() >= Const.OrderStatusEnum.PAID.getCode()) {
+            // 这里我们认为订单状态如果是>=20  我们都表示是 订单支付成功的！ 我们直接返回就行了
+            return ServerResponse.createBySuccess();
+        }
+        return ServerResponse.createByError();
     }
 }

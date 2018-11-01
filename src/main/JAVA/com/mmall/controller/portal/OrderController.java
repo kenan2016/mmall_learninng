@@ -54,7 +54,16 @@ public class OrderController {
         return iOrderService.pay(orderNo,user.getId(),path);
     }
 
-    // 支付宝的回调函数
+    /**
+    * 支付宝的回调接口
+     * 注意 支付宝的回调接口的返回必须是 字符串 “success”
+    * @author kenan
+    * @date 2018/11/1
+    * @param
+    * @return
+    */
+    @RequestMapping("alipay_callback.do")
+    @ResponseBody
     public Object alipayCallback(HttpServletRequest request) {
         Map<String, String> params = Maps.newHashMap();
         Map requestParams = request.getParameterMap();
@@ -74,7 +83,6 @@ public class OrderController {
         // 这里请查看源码！！！！注意要传入 Alipay public key
         try {
             boolean alipayCheckedV2 = AlipaySignature.rsaCheckV2(params, Configs.getAlipayPublicKey(), "utf-8", Configs.getSignType());
-            // todo 验证各种数据
             if  (!alipayCheckedV2) {
                 return ServerResponse.createByErrorMessage("非法请求，验证不通过！,再恶意请求就报警了");
                 // 建议这里可以加一下异常请求的日志
@@ -82,6 +90,36 @@ public class OrderController {
         } catch (AlipayApiException e) {
             logger.error("支付宝回调发生异常",e);
         }
-        return null;
+        // todo 验证各种数据
+        ServerResponse serverResponse = iOrderService.aliCallback(params);
+        if (serverResponse.isSuccess()) {
+            return Const.AlipayCallback.RESPONSE_SUCCESS;
+        }
+        return  Const.AlipayCallback.RESPONSE_FAILED;
+    }
+
+    /**
+    * 查询订单的支付状态，
+     * 即前台会调用这个接口查询这个接口查询付款是否成功，如果付款 成功会 在二维码付款的这个页面上给与用户提示，付款成功
+    * @author kenan
+    * @date 2018/11/1
+    * @param
+    * @return
+    */
+    @RequestMapping("/query_order_pay_status.do")
+    @ResponseBody
+    public ServerResponse<Boolean> queryOrderPayStatus (HttpSession session, Long orderNo,  HttpServletRequest request) {
+        // request  我们会把传过来的参数变成要扫描的二维码，然后把二维码存到服务器端，并将图片地址返回给前端，前端展示图片
+        User user = (User)session.getAttribute(Const.CURRENT_USER);
+        if(user ==null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(),ResponseCode.NEED_LOGIN.getDesc());
+        }
+
+        String path = request.getSession().getServletContext().getRealPath("upload");
+        ServerResponse serverResponse = iOrderService.queryOrderPayStatus(user.getId(), orderNo);
+        if (serverResponse.isSuccess()) {
+            return ServerResponse.createBySuccess(true);
+        }
+        return ServerResponse.createBySuccess(false);
     }
 }
