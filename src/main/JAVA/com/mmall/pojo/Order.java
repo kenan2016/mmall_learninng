@@ -18,6 +18,14 @@ public class Order {
 
     private Integer postage;
 
+    /**
+    * 我们业务系统中的订单状态
+     * '订单状态:0-已取消-10-未付款，20-已付款，40-已发货，50-交易成功，60-交易关闭',
+    * @author kenan
+    * @date 2018/11/1
+    * @param
+    * @return
+    */
     private Integer status;
 
     private Date paymentTime;

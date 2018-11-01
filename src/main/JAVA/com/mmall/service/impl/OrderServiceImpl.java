@@ -12,6 +12,7 @@ import com.alipay.demo.trade.service.impl.AlipayTradeServiceImpl;
 import com.alipay.demo.trade.utils.ZxingUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mmall.common.Const;
 import com.mmall.common.ServerResponse;
 import com.mmall.dao.OrderItemMapper;
 import com.mmall.dao.OrderMapper;
@@ -195,5 +196,34 @@ public class OrderServiceImpl implements IOrderService {
             }
             logger.info("body:" + response.getBody());
         }
+    }
+
+
+    /**
+    * 支付宝回调的业务逻辑
+    * @author kenan
+    * @date 2018/11/1
+    * @param
+    * @return
+    */
+
+    public ServerResponse aliCallback(Map<String, String> params) {
+        Long orderNo =  Long.parseLong(params.get("out_trade_no"));//我们自己的业务系统中的单号（由我们原本传过去，现在回调时，支付宝再传过来，然后再由我们自己,校验一下该订单是否存在）
+        String tradeNo = params.get("trade_no"); // 支付宝的交易单号
+        Order order = orderMapper.selectByOrderNo(orderNo);
+        if (order == null) {
+            return ServerResponse.createByErrorMessage("该订单不存在,非快乐慕商城的订单，回调忽略");
+        }
+        // 判断一下，订单 是否已经支付过。
+//        * 我们业务系统中的订单状态、请注意不要和支付宝的订单 状态搞混了
+//                * '订单状态:0-已取消-10-未付款，20-已付款，40-已发货，50-交易成功，60-交易关闭',
+        // 订单状态大于20 的话 就说明已经被支付宝的回调用过这个方法。要避免重复调用
+        if (order.getStatus() >= Const.OrderStatusEnum.PAID.getCode()) {
+            return ServerResponse.createBySuccess("支付宝重复调用");
+        }
+
+        if () {
+        }
+
     }
 }

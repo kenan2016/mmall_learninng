@@ -1,5 +1,8 @@
 package com.mmall.controller.portal;
 
+import com.alipay.api.AlipayApiException;
+import com.alipay.api.internal.util.AlipaySignature;
+import com.alipay.demo.trade.config.Configs;
 import com.google.common.collect.Maps;
 import com.mmall.common.Const;
 import com.mmall.common.ResponseCode;
@@ -67,6 +70,18 @@ public class OrderController {
 
         logger.info("支付宝回调，sign:{},trade_status:{},参数：{}",params.get("sign"),params.get("trade_status"), params.toString());
         // 非常重要。验证回调的正确性，是不是支付宝发的，并且还要回避重复通知
-
+        params.remove("sign_type");// 这里请参考支付宝api （移除两个参数|）
+        // 这里请查看源码！！！！注意要传入 Alipay public key
+        try {
+            boolean alipayCheckedV2 = AlipaySignature.rsaCheckV2(params, Configs.getAlipayPublicKey(), "utf-8", Configs.getSignType());
+            // todo 验证各种数据
+            if  (!alipayCheckedV2) {
+                return ServerResponse.createByErrorMessage("非法请求，验证不通过！,再恶意请求就报警了");
+                // 建议这里可以加一下异常请求的日志
+            }
+        } catch (AlipayApiException e) {
+            logger.error("支付宝回调发生异常",e);
+        }
+        return null;
     }
 }
