@@ -247,6 +247,7 @@ public class OrderServiceImpl implements IOrderService {
         return ServerResponse.createBySuccess();
     }
 
+    @Override
     public ServerResponse queryOrderPayStatus (Integer userId, long orderNo) {
         Order order = orderMapper.selectByUserIdAndOrderNo(userId, orderNo);
         if (order == null) {

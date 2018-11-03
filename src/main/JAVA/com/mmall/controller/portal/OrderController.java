@@ -62,7 +62,7 @@ public class OrderController {
     * @param
     * @return
     */
-    @RequestMapping("alipay_callback.do")
+    @RequestMapping("/alipay_callback.do")
     @ResponseBody
     public Object alipayCallback(HttpServletRequest request) {
         Map<String, String> params = Maps.newHashMap();
@@ -120,6 +120,7 @@ public class OrderController {
         if (serverResponse.isSuccess()) {
             return ServerResponse.createBySuccess(true);
         }
+        // 返回 true or false
         return ServerResponse.createBySuccess(false);
     }
 }

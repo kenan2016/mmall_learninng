@@ -43,7 +43,7 @@
       #{shippingId,jdbcType=INTEGER}, #{payment,jdbcType=DECIMAL}, #{paymentType,jdbcType=INTEGER}, 
       #{postage,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{paymentTime,jdbcType=TIMESTAMP}, 
       #{sendTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{closeTime,jdbcType=TIMESTAMP}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      now(),  now())
   </insert>
   <insert id="insertSelective" parameterType="com.mmall.pojo.Order" >
     insert into mmall_order
@@ -199,12 +199,14 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
-  <select id="selectByUserIdAndOrderNo" resultMap="BaseResultMap" parameterType="map" >
-    select
+  <select id="selectByUserIdAndOrderNo" resultMap="BaseResultMap" parameterType="map">
+    SELECT
     <include refid="Base_Column_List"></include>
-    from mmall_order where order_no = #{orderNo} and user_id =#{userId}
+    from mmall_order
+    where order_no = #{orderNo}
+    and user_id = #{userId}
   </select>
-  
+
   <select id="selectByOrderNo" resultMap="BaseResultMap" parameterType="map">
     SELECT <include refid="Base_Column_List"></include>
     FROM  mmall_order WHERE order_no = #{orderNo}
